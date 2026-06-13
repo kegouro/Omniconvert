@@ -14,5 +14,8 @@ venv/
 .ruff_cache/
 .coverage
 
+# Claude Code
+.claude/
+
 # Sistema
 .DS_Store
