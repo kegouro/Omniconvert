@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "omniconvert"
+version = "0.1.0"
+description = "Transformador universal de datos: CLI extensible con conversores encadenables"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "José Labarca" }]
+keywords = ["conversion", "cli", "csv", "json", "root", "audio"]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+root = ["uproot>=5.0", "numpy>=1.24"]
+audio = [
+    "pydub>=0.25",
+    "audioop-lts>=0.2; python_version >= '3.13'",
+]
+all = ["omniconvert[root,audio]"]
+dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+omniconvert = "omni_convert.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/omni_convert"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
