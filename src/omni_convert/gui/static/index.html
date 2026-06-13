@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>OmniConvert</title>
+<style>
+  :root {
+    --paper: #F6F3EC;
+    --ink: #161209;
+    --muted: #837A69;
+    --line: #DCD5C4;
+    --accent: #A8431E;
+    --ok: #2E5E3F;
+    --serif: "Didot", "Bodoni 72", ui-serif, Georgia, serif;
+    --sans: "Avenir Next", "Avenir", -apple-system, "Helvetica Neue", sans-serif;
+    --mono: "SF Mono", ui-monospace, "Menlo", monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    background-image: radial-gradient(ellipse 120% 80% at 50% -10%, rgba(22, 18, 9, 0.03), transparent 60%);
+  }
+
+  ::selection { background: var(--accent); color: var(--paper); }
+
+  button { font: inherit; color: inherit; }
+  button:focus-visible { outline: 1.5px solid var(--accent); outline-offset: 3px; }
+
+  /* Marco perimetral: la ventana como hoja impresa */
+  .frame {
+    position: fixed;
+    inset: 12px;
+    border: 1px solid var(--line);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  main {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 58px 36px 40px;
+  }
+
+  /* ——— entrada en escena ——— */
+  .reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: rise 0.7s cubic-bezier(0.16, 0.84, 0.28, 1) forwards;
+    animation-delay: calc(var(--d) * 95ms);
+  }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+
+  /* ——— cabecera ——— */
+  .overline {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: 44px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    margin-top: 10px;
+  }
+
+  .rule { border: 0; border-top: 1px solid var(--line); margin-top: 26px; }
+
+  /* ——— pasos ——— */
+  .step { margin-top: 40px; transition: opacity 0.45s ease, filter 0.45s ease; }
+  .step.locked { opacity: 0.3; filter: saturate(0); pointer-events: none; }
+
+  .step-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .step-head .num { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .step-head .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* ——— 01 · origen ——— */
+  .picker {
+    width: 100%;
+    padding: 28px 24px;
+    background: transparent;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .picker:hover { border-color: var(--ink); background: rgba(22, 18, 9, 0.025); }
+
+  .picker .plus {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--accent);
+    margin-right: 10px;
+  }
+  .picker-empty { font-size: 14px; color: var(--muted); }
+
+  .file-name { display: block; font-size: 17px; font-weight: 500; word-break: break-all; }
+  .file-meta {
+    display: block;
+    margin-top: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .warn { margin-top: 12px; font-size: 13px; color: var(--accent); }
+
+  /* ——— 02 · destino ——— */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border: 1px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  }
+  .chip:hover { border-color: var(--ink); }
+  .chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .route {
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .route .arrow { color: var(--accent); padding: 0 4px; }
+
+  .out-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .out-row .path {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+  }
+  .linkish {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+
+  /* ——— 03 · convertir ——— */
+  .convert {
+    width: 100%;
+    padding: 17px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    transition: background 0.25s ease, transform 0.1s ease, opacity 0.25s ease;
+  }
+  .convert:hover:not(:disabled) { background: var(--accent); }
+  .convert:active:not(:disabled) { transform: translateY(1px); }
+  .convert:disabled { opacity: 0.45; cursor: default; }
+
+  .progress { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
+  .track { flex: 1; height: 2px; background: var(--line); }
+  .fill { height: 100%; width: 0; background: var(--accent); transition: width 0.15s linear; }
+  .pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 44px;
+    text-align: right;
+  }
+
+  .status { margin-top: 18px; font-size: 13.5px; line-height: 1.5; }
+  .status .mark-ok { color: var(--ok); margin-right: 6px; }
+  .status .mark-err { color: var(--accent); margin-right: 6px; }
+  .status .linkish { font-size: 12px; margin-left: 8px; }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="frame" aria-hidden="true"></div>
+
+<main>
+  <header class="reveal" style="--d:0">
+    <p class="overline">Transformador universal de datos</p>
+    <h1>OmniConvert</h1>
+    <hr class="rule">
+  </header>
+
+  <section class="step reveal" style="--d:1" id="step-source">
+    <div class="step-head"><span class="num">01</span><span class="label">Origen</span></div>
+    <button class="picker" id="picker" onclick="chooseInput()">
+      <span id="picker-empty"><span class="plus">+</span><span class="picker-empty">Seleccionar archivo</span></span>
+      <span id="picker-file" class="hidden">
+        <span class="file-name" id="file-name"></span>
+        <span class="file-meta" id="file-meta"></span>
+      </span>
+    </button>
+    <p class="warn hidden" id="source-warn"></p>
+  </section>
+
+  <section class="step locked reveal" style="--d:2" id="step-target">
+    <div class="step-head"><span class="num">02</span><span class="label">Destino</span></div>
+    <div class="chips" id="chips"></div>
+    <div class="route hidden" id="route"></div>
+    <div class="out-row hidden" id="out-row">
+      <span class="path" id="out-path"></span>
+      <button class="linkish" onclick="chooseOutput()">Cambiar…</button>
+    </div>
+  </section>
+
+  <section class="step locked reveal" style="--d:3" id="step-run">
+    <button class="convert" id="convert-btn" onclick="runConvert()">Convertir</button>
+    <div class="progress hidden" id="progress">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <span class="pct" id="pct">0 %</span>
+    </div>
+    <p class="status hidden" id="status"></p>
+  </section>
+
+  <footer class="reveal" style="--d:4">
+    <span>OmniConvert · v0.1.0</span>
+    <span id="footer-formats"></span>
+  </footer>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const state = { input: null, target: null, output: null, busy: false };
+
+  /* Receptor de progreso invocado desde Python vía evaluate_js. */
+  window.omni = {
+    onProgress(fraction) {
+      const pct = Math.round(fraction * 100);
+      $("fill").style.width = pct + "%";
+      $("pct").textContent = pct + " %";
+    },
+  };
+
+  function setLocked(id, locked) {
+    $(id).classList.toggle("locked", locked);
+  }
+
+  function resetFrom(step) {
+    if (step <= 2) {
+      state.target = null;
+      state.output = null;
+      $("chips").innerHTML = "";
+      $("route").classList.add("hidden");
+      $("out-row").classList.add("hidden");
+      setLocked("step-target", true);
+    }
+    setLocked("step-run", true);
+    $("convert-btn").disabled = false;
+    $("progress").classList.add("hidden");
+    $("status").classList.add("hidden");
+    window.omni.onProgress(0);
+  }
+
+  async function chooseInput() {
+    if (state.busy) return;
+    const info = await pywebview.api.choose_input();
+    if (!info) return;
+
+    state.input = info;
+    $("picker-empty").classList.add("hidden");
+    $("picker-file").classList.remove("hidden");
+    $("file-name").textContent = info.name;
+    $("file-meta").textContent = info.format + (info.size ? " · " + info.size : "");
+    resetFrom(2);
+
+    const warn = $("source-warn");
+    if (info.targets.length === 0) {
+      warn.textContent = "No hay conversiones disponibles para «." + info.format + "».";
+      warn.classList.remove("hidden");
+      return;
+    }
+    warn.classList.add("hidden");
+
+    for (const target of info.targets) {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.textContent = target.format;
+      chip.onclick = () => selectTarget(target, chip);
+      $("chips").appendChild(chip);
+    }
+    setLocked("step-target", false);
+  }
+
+  async function selectTarget(target, chip) {
+    if (state.busy) return;
+    state.target = target;
+    document.querySelectorAll(".chip").forEach((c) => c.classList.remove("on"));
+    chip.classList.add("on");
+
+    const route = $("route");
+    route.innerHTML = "ruta&nbsp; " + target.chain
+      .map((fmt) => "<span>" + fmt + "</span>")
+      .join('<span class="arrow">→</span>');
+    if (target.steps > 1) {
+      route.innerHTML += "&nbsp;·&nbsp;" + target.steps + " pasos";
+    }
+    route.classList.remove("hidden");
+
+    state.output = await pywebview.api.default_output(state.input.path, target.format);
+    $("out-path").textContent = state.output;
+    $("out-row").classList.remove("hidden");
+
+    $("convert-btn").disabled = false;
+    $("progress").classList.add("hidden");
+    $("status").classList.add("hidden");
+    window.omni.onProgress(0);
+    setLocked("step-run", false);
+  }
+
+  async function chooseOutput() {
+    if (state.busy || !state.output) return;
+    const selected = await pywebview.api.choose_output(state.output);
+    if (selected) {
+      state.output = selected;
+      $("out-path").textContent = selected;
+    }
+  }
+
+  async function runConvert() {
+    if (state.busy || !state.input || !state.target) return;
+    state.busy = true;
+    const btn = $("convert-btn");
+    btn.disabled = true;
+    btn.textContent = "Convirtiendo…";
+    $("status").classList.add("hidden");
+    $("progress").classList.remove("hidden");
+    window.omni.onProgress(0);
+
+    const result = await pywebview.api.convert(
+      state.input.path, state.input.format, state.target.format, state.output
+    );
+
+    state.busy = false;
+    btn.disabled = false;
+    btn.textContent = "Convertir";
+    const status = $("status");
+    status.classList.remove("hidden");
+
+    if (result.ok) {
+      window.omni.onProgress(1);
+      const name = state.output.split("/").pop();
+      status.innerHTML =
+        '<span class="mark-ok">✓</span>Guardado como <strong></strong>' +
+        '<button class="linkish" onclick="revealOutput()">Mostrar en Finder</button>';
+      status.querySelector("strong").textContent = name;
+    } else {
+      $("progress").classList.add("hidden");
+      status.innerHTML = '<span class="mark-err">✕</span><span></span>';
+      status.querySelector("span:last-child").textContent = result.error;
+    }
+  }
+
+  function revealOutput() {
+    if (state.output) pywebview.api.reveal(state.output);
+  }
+
+  window.addEventListener("pywebviewready", async () => {
+    /* Pie de página: formatos conocidos, derivados del registro real. */
+    const formats = await pywebview.api.known_formats();
+    $("footer-formats").textContent = formats.join(" · ");
+  });
+</script>
+</body>
+</html>

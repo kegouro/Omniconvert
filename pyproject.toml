@@ -22,7 +22,8 @@ audio = [
     "pydub>=0.25",
     "audioop-lts>=0.2; python_version >= '3.13'",
 ]
-all = ["omniconvert[root,audio]"]
+gui = ["pywebview>=5.0"]
+all = ["omniconvert[root,audio,gui]"]
 dev = [
     "pytest>=8.0",
     "pytest-xdist>=3.0",

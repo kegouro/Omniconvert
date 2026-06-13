@@ -130,5 +130,17 @@ def path(
     console.print(f"{chain}  (conversores: {names})")
 
 
+@app.command()
+def gui() -> None:
+    """Abre la interfaz gráfica de OmniConvert."""
+    from omni_convert.gui.app import launch
+
+    try:
+        launch()
+    except ConversionError as exc:
+        console.print(f"[red]Error:[/] {exc}")
+        raise typer.Exit(code=1) from exc
+
+
 if __name__ == "__main__":
     app()

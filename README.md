@@ -14,11 +14,28 @@ eventos.root → eventos.json  (root → csv → json)
 No existe un conversor directo ROOT→JSON: OmniConvert encontró solo la ruta
 `root → csv → json` mediante búsqueda en anchura sobre el grafo de conversores.
 
+## Interfaz gráfica
+
+Doble clic en **`OmniConvert.command`** abre la aplicación de escritorio
+(la primera vez crea el entorno e instala dependencias, requiere internet).
+Si macOS bloquea la apertura, haz clic derecho → *Abrir* la primera vez.
+
+También puedes lanzarla desde la terminal:
+
+```bash
+make gui                # o bien: omniconvert gui
+```
+
+La interfaz guía la conversión en tres pasos: elegir archivo de origen,
+elegir formato de destino entre los alcanzables (mostrando la cadena de
+conversión que se usará) y convertir con barra de progreso. La ubicación de
+salida se propone junto al original sin pisar archivos existentes.
+
 ## Instalación
 
 ```bash
 make install            # core + deps de desarrollo (CSV↔JSON funcionan ya)
-make install-all        # añade extras: ROOT (uproot) y audio (pydub)
+make install-all        # añade extras: ROOT (uproot), audio (pydub) y GUI (pywebview)
 ```
 
 O con pip directamente:
@@ -62,6 +79,8 @@ También funciona como módulo: `python -m omni_convert ...`
 | root   | csv     | `[root]`: uproot, numpy |
 | mp3    | wav     | `[audio]`: pydub + ffmpeg del sistema |
 
+La interfaz gráfica usa el extra `[gui]` (pywebview).
+
 Los extras son opcionales: si falta uno, la CLI sigue funcionando y el
 conversor afectado indica el comando `pip install` exacto al usarse.
 
@@ -69,14 +88,18 @@ conversor afectado indica el comando `pip install` exacto al usarse.
 
 ```
 src/omni_convert/
-├── cli.py                 # Typer: convert, formats, path
+├── cli.py                 # Typer: convert, formats, path, gui
 ├── core/
 │   ├── converter.py       # Converter (ABC) + errores
 │   ├── registry.py        # Registro dinámico con auto-descubrimiento
 │   └── pipeline.py        # BFS de rutas + ejecución encadenada
-└── converters/
-    ├── data/              # csv_to_json, json_to_csv, root_to_csv
-    └── audio/             # mp3_to_wav
+├── converters/
+│   ├── data/              # csv_to_json, json_to_csv, root_to_csv
+│   └── audio/             # mp3_to_wav
+└── gui/
+    ├── api.py             # Puente Python <-> JS (testeable sin ventana)
+    ├── app.py             # Ventana pywebview
+    └── static/index.html  # Interfaz (HTML/CSS/JS autocontenido)
 ```
 
 - **Registro dinámico**: `registry.discover()` recorre `omni_convert.converters`

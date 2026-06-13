@@ -88,6 +88,26 @@ src/omni_convert/
 - **CLI**: `typer.testing.CliRunner` end-to-end (csv→json, formats, path, cadena
   root→json si hay uproot).
 
+## Interfaz gráfica (añadida 2026-06-12)
+
+- **Stack**: pywebview (ventana WebKit nativa de macOS) + un `index.html`
+  autocontenido. Extra de pip `[gui]`; import perezoso como el resto de extras.
+- **Separación testeable**: `gui/api.py` (clase `GuiApi`, puente JS↔Python) no
+  importa pywebview a nivel de módulo — los tests la ejercitan con una ventana
+  falsa que captura `evaluate_js`. Solo `gui/app.py` y los diálogos nativos
+  tocan pywebview.
+- **Flujo en 3 pasos**: origen (diálogo nativo) → destino (chips con los
+  formatos *alcanzables* por BFS desde el formato de origen, mostrando la
+  cadena) → convertir (progreso vía `evaluate_js`). La salida propuesta vive
+  junto al original y nunca pisa archivos existentes por defecto.
+- **Estética**: minimalismo editorial "hoja impresa" — papel cálido, marco
+  perimetral fino, Didot para el wordmark, Avenir Next para UI, SF Mono para
+  chips y rutas, acento terracota único. Tipografías del sistema: funciona
+  sin red.
+- **Ejecutable**: `OmniConvert.command` (doble clic en Finder); crea el venv
+  e instala extras en la primera ejecución y luego lanza `python -m
+  omni_convert gui`.
+
 ## Tooling
 
 - `pyproject.toml` (hatchling), extras `[root]`, `[audio]`, `[all]`, `[dev]`.

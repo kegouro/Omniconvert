@@ -2,7 +2,7 @@ PYTHON ?= python3
 VENV := .venv
 BIN := $(VENV)/bin
 
-.PHONY: help install install-all test test-fast lint format clean
+.PHONY: help install install-all gui test test-fast lint format clean
 
 help: ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-12s %s\n", $$1, $$2}'
@@ -14,8 +14,11 @@ $(BIN)/python:
 install: $(BIN)/python ## Instala el paquete en modo editable + deps de desarrollo
 	$(BIN)/pip install -e ".[dev]"
 
-install-all: $(BIN)/python ## Igual que install, más los extras (ROOT, audio)
-	$(BIN)/pip install -e ".[dev,root,audio]"
+install-all: $(BIN)/python ## Igual que install, más los extras (ROOT, audio, GUI)
+	$(BIN)/pip install -e ".[dev,root,audio,gui]"
+
+gui: ## Abre la interfaz gráfica
+	$(BIN)/python -m omni_convert gui
 
 test: ## Ejecuta los tests
 	$(BIN)/pytest
