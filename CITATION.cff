@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Si usas este software, por favor cítalo."
+title: "Omniconvert — conversor universal de formatos"
+abstract: "Conversor universal de archivos que encadena convertidores entre formatos heterogéneos mediante BFS."
+type: software
+authors:
+  - family-names: "Labarca Baeza"
+    given-names: "José"
+    orcid: "https://orcid.org/0009-0006-8890-4048"
+    affiliation: "Universidad Técnica Federico Santa María, Valparaíso, Chile"
+repository-code: "https://github.com/kegouro/Omniconvert"
+url: "https://kegouro.github.io"
+license: MIT
+keywords:
+  - file conversion
+  - data formats
+  - CLI
+  - BFS
