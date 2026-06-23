@@ -365,3 +365,7 @@ Documento de diseño completo: [`docs/superpowers/specs/2026-06-12-omniconvert-d
 **MIT** © 2026 [Jose Labarca](https://github.com/kegouro)
 
 </div>
+
+---
+
+<sub>Parte del **[Pharos Project](https://kegouro.github.io)** — infraestructura científica y educativa sin barreras de entrada. · José Labarca Baeza</sub>
