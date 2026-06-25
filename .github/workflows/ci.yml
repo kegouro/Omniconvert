@@ -20,7 +20,7 @@ jobs:
       - name: Instalar ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Instalar dependencias
-        run: pip install -e ".[dev,root,audio]"
+        run: pip install -e ".[dev,extended,ocr]"
       - name: Lint
         run: |
           ruff check src tests

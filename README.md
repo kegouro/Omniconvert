@@ -82,7 +82,7 @@ Or pick your extras with pip:
 
 ```bash
 pip install -e "."                # core only
-pip install -e ".[root,audio]"    # + scientific & audio converters
+pip install -e ".[extended,ocr]"  # + extended & ocr converters
 pip install -e ".[gui]"           # + desktop GUI
 pip install -e ".[all]"           # everything
 ```
@@ -97,8 +97,10 @@ pip install -e ".[all]"           # everything
 | `omniconvert convert events.root events.json` | Automatic multi-step chaining |
 | `omniconvert convert export.dat out.json --from csv --to json` | Force formats when extension doesn't match |
 | `omniconvert convert file.root file.json --via csv` | Force a specific intermediate format |
+| `omniconvert convert --batch "data/*.csv" --to json` | **⚡️ Ultra-fast Concurrent Batch Processing** |
+| `omniconvert convert book.pdf book.md --to md-sci` | **🔬 Scientific OCR (Deep Learning based equations)** |
 | `omniconvert formats` | List all registered converters |
-| `omniconvert path root json` | Show the conversion chain between two formats |
+| `omniconvert path root json` | Dry-run: shows the shortest conversion path |
 | `python -m omni_convert ...` | Use as a Python module |
 
 ### Architecture & Design
@@ -140,6 +142,14 @@ graph LR
     style A fill:#f9f,stroke:#333
     style D fill:#9f9,stroke:#333
 ```
+
+### ✨ Key Features
+
+- **🧠 Auto-Routing Core**: Dijkstra-based graph search that figures out multi-step conversions on its own.
+- **⚡️ Blazing Fast Batching**: Converts hundreds of files in parallel via ThreadPool executors, fully utilizing your CPU cores while limiting RAM intelligently for heavy ML models.
+- **🎨 Premium Terminal UI**: Built with `rich`, featuring beautiful progress bars, dynamic spinners, and async heartbeats so you always know exactly what's processing.
+- **🧩 Pluggable Architecture**: Zero-friction plugins. Just drop a file in `converters/` with the `@register` decorator and OmniConvert does the rest.
+- **🔬 Deep Learning OCR**: Uses `marker-pdf` and `pix2tex` for high-fidelity conversion of scientific papers directly to LaTeX-embedded Markdown.
 
 ### Bundled Converters
 
@@ -242,7 +252,7 @@ O elige tus extras con pip:
 
 ```bash
 pip install -e "."                # solo core
-pip install -e ".[root,audio]"    # + conversores científicos y audio
+pip install -e ".[extended,ocr]"  # + conversores extendidos y ocr
 pip install -e ".[gui]"           # + interfaz gráfica
 pip install -e ".[all]"           # todo
 ```
@@ -251,33 +261,30 @@ pip install -e ".[all]"           # todo
 
 ### Inicio Rápido
 
-| Comando | Qué hace |
-|---------|----------|
-| `omniconvert convert datos.csv datos.json` | Conversión simple (formatos auto-detectados) |
-| `omniconvert convert eventos.root eventos.json` | Encadenamiento automático multi-paso |
-| `omniconvert convert export.dat out.json --from csv --to json` | Forzar formatos cuando la extensión no coincide |
-| `omniconvert convert archivo.root archivo.json --via csv` | Forzar un formato intermedio específico |
-| `omniconvert formats` | Listar todos los conversores registrados |
-| `omniconvert path root json` | Mostrar la cadena entre dos formatos |
-| `python -m omni_convert ...` | Usar como módulo Python |
+| Comando | Acción |
+|---------|-------------|
+| `omniconvert convert data.csv data.json` | Conversión simple (detecta formatos automáticamente) |
+| `omniconvert convert events.root events.json` | Encadenamiento automático de múltiples pasos |
+| `omniconvert convert export.dat out.json --from csv --to json` | Fuerza formatos si la extensión no concuerda |
+| `omniconvert convert file.root file.json --via csv` | Obliga a pasar por un formato intermedio específico |
+| `omniconvert convert --batch "data/*.csv" --to json` | **⚡️ Procesamiento concurrente ultra rápido por lotes** |
+| `omniconvert convert book.pdf book.md --to md-sci` | **🔬 OCR Científico (Extrae ecuaciones mediante Deep Learning)** |
+| `omniconvert formats` | Muestra la lista de todos los conversores registrados |
+| `omniconvert path root json` | Muestra la ruta de conversión óptima sin ejecutarla |
+
+---
 
 ### Arquitectura y Diseño
 
-```
-src/omni_convert/
-├── cli.py                         # CLI con Typer — 4 comandos: convert, formats, path, gui
-├── core/
-│   ├── converter.py               # ABC Converter + ConversionError, MissingDependencyError
-│   ├── registry.py                # Registro dinámico con auto-descubrimiento vía pkgutil
-│   └── pipeline.py                # BFS camino más corto + Pipeline de ejecución encadenada
-├── converters/
-│   ├── data/                      # csv↔json, root→csv
-│   └── audio/                     # mp3→wav
-└── gui/
-    ├── api.py                     # Puente Python ↔ JS (¡testeable sin ventana!)
-    ├── app.py                     # Ventana nativa pywebview
-    └── static/index.html          # App SPA autocontenida HTML/CSS/JS
-```
+OmniConvert no usa conversores monolíticos como "docx to epub". Define módulos pequeños y reusables.
+
+### ✨ Características Principales
+
+- **🧠 Enrutamiento Automático**: Algoritmo de búsqueda de grafos (Dijkstra) que encuentra el mejor camino de conversión.
+- **⚡️ Batching Ultra Rápido**: Convierte cientos de archivos en paralelo a través de ThreadPools, aprovechando tu CPU y limitando inteligentemente la RAM en modelos de ML pesados.
+- **🎨 UI de Terminal (TUI) Premium**: Interfaz moderna desarrollada con `rich` que presenta barras de progreso asíncronas, *spinners* dinámicos y "heartbeats" para saber exactamente qué ocurre.
+- **🧩 Arquitectura de Plugins**: Agregar un conversor es tan fácil como crear un archivo con `@register`.
+- **🔬 OCR con IA Avanzada**: Integra `marker-pdf` y `pix2tex` para conversiones científicas pesadas, rescatando ecuaciones de papers y convirtiéndolas en LaTeX perfecto.
 
 #### 🔑 Decisiones Clave de Diseño
 

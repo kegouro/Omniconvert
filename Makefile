@@ -14,8 +14,8 @@ $(BIN)/python:
 install: $(BIN)/python ## Instala el paquete en modo editable + deps de desarrollo
 	$(BIN)/pip install -e ".[dev]"
 
-install-all: $(BIN)/python ## Igual que install, más los extras (ROOT, audio, GUI)
-	$(BIN)/pip install -e ".[dev,root,audio,gui]"
+install-all: $(BIN)/python ## Igual que install, más los extras (extended, OCR, GUI)
+	$(BIN)/pip install -e ".[dev,extended,ocr,gui]"
 
 gui: ## Abre la interfaz gráfica
 	$(BIN)/python -m omni_convert gui

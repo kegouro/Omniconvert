@@ -39,7 +39,7 @@ class RootToCsv(Converter):
         try:
             import uproot
         except ImportError as exc:
-            raise MissingDependencyError("uproot", "root") from exc
+            raise MissingDependencyError("uproot", "extended") from exc
 
         with uproot.open(input_path) as root_file:
             tree_names = [

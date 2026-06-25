@@ -124,5 +124,5 @@ class TestRootToCsv:
         from omni_convert.core.converter import MissingDependencyError
 
         monkeypatch.setitem(sys.modules, "uproot", None)
-        with pytest.raises(MissingDependencyError, match=r"omniconvert\[root\]"):
+        with pytest.raises(MissingDependencyError, match=r"omniconvert\[extended\]"):
             RootToCsv().convert(tmp_path / "x.root", tmp_path / "x.csv", NOOP)

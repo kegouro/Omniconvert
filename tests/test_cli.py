@@ -76,3 +76,69 @@ class TestPath:
         result = runner.invoke(app, ["path", "wav", "csv"])
         assert result.exit_code == 1
         assert "No hay ruta de conversión" in result.output
+
+
+class TestBatchConvert:
+    def test_batch_convert_csv_to_json(self, tmp_path):
+        # Create mock csv files
+        f1 = tmp_path / "data1.csv"
+        f1.write_text("name,val\nA,1\n", encoding="utf-8")
+        f2 = tmp_path / "data2.csv"
+        f2.write_text("name,val\nB,2\n", encoding="utf-8")
+
+        # Run batch conversion
+        pattern = str(tmp_path / "*.csv")
+        result = runner.invoke(app, ["convert", "--batch", pattern, "--to", "json"])
+
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / "data1.json").exists()
+        assert (tmp_path / "data2.json").exists()
+        assert json.loads((tmp_path / "data1.json").read_text(encoding="utf-8")) == [{"name": "A", "val": "1"}]
+        assert json.loads((tmp_path / "data2.json").read_text(encoding="utf-8")) == [{"name": "B", "val": "2"}]
+
+    def test_batch_convert_missing_to_fails(self, tmp_path):
+        pattern = str(tmp_path / "*.csv")
+        result = runner.invoke(app, ["convert", "--batch", pattern])
+        assert result.exit_code != 0
+        assert "obligatoria" in result.output or "to" in result.output
+
+    def test_batch_convert_with_output_dir(self, tmp_path):
+        f1 = tmp_path / "data1.csv"
+        f1.write_text("name,val\nA,1\n", encoding="utf-8")
+        out_dir = tmp_path / "output_dir"
+
+        pattern = str(tmp_path / "*.csv")
+        result = runner.invoke(app, ["convert", "--batch", pattern, "--to", "json", "--output-dir", str(out_dir)])
+
+        assert result.exit_code == 0, result.output
+        assert (out_dir / "data1.json").exists()
+
+    def test_batch_convert_no_match(self, tmp_path):
+        pattern = str(tmp_path / "nonexistent*.csv")
+        result = runner.invoke(app, ["convert", "--batch", pattern, "--to", "json"])
+        assert result.exit_code != 0
+        assert "No se encontraron archivos" in result.output
+
+    def test_batch_convert_fail_fast(self, tmp_path):
+        f1 = tmp_path / "data1.csv"
+        f1.write_text("name,val\nA,1\n", encoding="utf-8")
+        f2 = tmp_path / "data2.invalid"
+        f2.write_text("bad data", encoding="utf-8")
+
+        pattern = str(tmp_path / "data*")
+        result = runner.invoke(app, ["convert", "--batch", pattern, "--to", "json", "--fail-fast"])
+        assert result.exit_code == 1
+        assert "Error" in result.output or "Fail-fast" in result.output
+
+    def test_batch_convert_continue_on_error(self, tmp_path):
+        f1 = tmp_path / "data1.csv"
+        f1.write_text("name,val\nA,1\n", encoding="utf-8")
+        f2 = tmp_path / "data2.txt"
+        f2.write_text("bad data", encoding="utf-8")
+
+        pattern = str(tmp_path / "data*")
+        result = runner.invoke(app, ["convert", "--batch", pattern, "--to", "json"])
+        assert result.exit_code == 1
+        assert "Resumen de errores" in result.output
+        assert (tmp_path / "data1.json").exists()
+

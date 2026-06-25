@@ -54,7 +54,7 @@ class TestMp3ToWav:
 
     def test_sin_pydub_pide_extra(self, tmp_path, monkeypatch):
         monkeypatch.setitem(sys.modules, "pydub", None)
-        with pytest.raises(MissingDependencyError, match=r"omniconvert\[audio\]"):
+        with pytest.raises(MissingDependencyError, match=r"omniconvert\[extended\]"):
             Mp3ToWav().convert(tmp_path / "x.mp3", tmp_path / "x.wav", NOOP)
 
     def test_error_de_decodificacion_es_conversion_error(self, tmp_path, monkeypatch):

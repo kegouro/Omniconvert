@@ -22,7 +22,7 @@ class Mp3ToWav(Converter):
         try:
             from pydub import AudioSegment
         except ImportError as exc:
-            raise MissingDependencyError("pydub", "audio") from exc
+            raise MissingDependencyError("pydub", "extended") from exc
 
         progress(0.1)
         try:
