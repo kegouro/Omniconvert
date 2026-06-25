@@ -1,6 +1,6 @@
 <div align="center">
   <br>
-  <img src="screenshot.png" alt="OmniConvert GUI" width="700">
+  <img src="banner.png" alt="OmniConvert Banner" width="800">
   <br><br>
 
   # 🌐 OmniConvert
